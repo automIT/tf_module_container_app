@@ -6,11 +6,13 @@ aus Terraform-Variablen in den Container gemountet.
 Die Dateien werden als Secrets der App angelegt und über ein Secret-Volume an den angegebenen
 Pfad gemountet. Ändert sich ein Dateiinhalt, erzeugt das Modul automatisch eine neue Revision.
 
+Benötigt den Provider `azurerm` ab Version 4.18 (`volume_mounts.sub_path`).
+
 ## Verwendung
 
 ```hcl
 module "containerapp_nginx" {
-  source = "git::https://dev.azure.com/automITde/training/_git/tf_module_container_app?ref=1.0.0"
+  source = "git::https://dev.azure.com/automITde/training/_git/tf_module_container_app?ref=1.0.1"
 
   ca_name                      = "autws15-nginx"
   resource_group_name          = data.azurerm_resource_group.rg.name

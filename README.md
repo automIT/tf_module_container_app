@@ -1,20 +1,54 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# Modul: container_app
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+Legt eine Azure Container App mit Ingress an. Optional werden Dateien (z.B. eine `index.html`)
+aus Terraform-Variablen in den Container gemountet.
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+Die Dateien werden als Secrets der App angelegt und über ein Secret-Volume an den angegebenen
+Pfad gemountet. Ändert sich ein Dateiinhalt, erzeugt das Modul automatisch eine neue Revision.
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+## Verwendung
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+```hcl
+module "containerapp_nginx" {
+  source = "git::https://dev.azure.com/automITde/training/_git/tf_module_container_app?ref=1.0.0"
+
+  ca_name                      = "autws15-nginx"
+  resource_group_name          = data.azurerm_resource_group.rg.name
+  container_app_environment_id = data.azurerm_container_app_environment.cae.id
+  container_image              = "nginx:latest"
+
+  mounted_files = [
+    {
+      path    = "/usr/share/nginx/html/index.html"
+      content = var.welcome_html
+    }
+  ]
+}
+```
+
+## Inputs
+
+| Name | Typ | Default | Beschreibung |
+|------|-----|---------|--------------|
+| `ca_name` | string | – | Name der App (Kleinbuchstaben, Ziffern, `-`, max. 32 Zeichen) |
+| `resource_group_name` | string | – | Resourcegruppe |
+| `container_app_environment_id` | string | – | ID des Container App Environments |
+| `container_image` | string | – | Container Image |
+| `container_name` | string | `"main"` | Name des Containers |
+| `cpu` | number | `0.25` | CPU pro Replica |
+| `memory` | string | `"0.5Gi"` | Speicher pro Replica |
+| `min_replicas` | number | `0` | Minimale Anzahl Replicas |
+| `max_replicas` | number | `1` | Maximale Anzahl Replicas |
+| `target_port` | number | `80` | Port des Containers |
+| `external_enabled` | bool | `true` | Ingress aus dem Internet erreichbar |
+| `env_vars` | list(object) | `[]` | `name` + `value` |
+| `mounted_files` | list(object) | `[]` | `path` (Dateipfad im Container) + `content` |
+| `tags` | map(string) | `{}` | Tags |
+
+## Outputs
+
+| Name | Beschreibung |
+|------|--------------|
+| `id` | ID der App |
+| `name` | Name der App |
+| `url` | URL der App |

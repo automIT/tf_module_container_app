@@ -19,9 +19,9 @@ Identity `<resource_group_name>-uami`, die der Trainer vorab mit `AcrPull` anleg
 module "containerapp_nginx" {
   source = "git::https://dev.azure.com/automITde/training/_git/tf_module_container_app?ref=2.0.0"
 
-  ca_name                      = "autws15-nginx"
+  ca_name                      = "autworkshopcapp1-module-app"
   resource_group_name          = data.azurerm_resource_group.rg.name
-  container_app_environment_id = data.azurerm_container_app_environment.cae.id
+  container_app_environment_id = data.azurerm_container_app_environment.environment.id
   container_image              = "nginx:latest" # -> automittraincapp.azurecr.io/nginx:latest
 
   mounted_files = [

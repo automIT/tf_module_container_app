@@ -15,6 +15,23 @@ resource "azurerm_container_app" "app" {
   revision_mode                = "Single"
   tags                         = var.tags
 
+  # Die Identity braucht AcrPull auf der Registry, das Modul vergibt keine Rollen
+  dynamic "identity" {
+    for_each = var.registry != null ? [var.registry] : []
+    content {
+      type         = "UserAssigned"
+      identity_ids = [identity.value.identity_id]
+    }
+  }
+
+  dynamic "registry" {
+    for_each = var.registry != null ? [var.registry] : []
+    content {
+      server   = registry.value.server
+      identity = registry.value.identity_id
+    }
+  }
+
   dynamic "secret" {
     for_each = local.mounted_files
     content {

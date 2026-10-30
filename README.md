@@ -12,7 +12,7 @@ Benötigt den Provider `azurerm` ab Version 4.18 (`volume_mounts.sub_path`).
 
 ```hcl
 module "containerapp_nginx" {
-  source = "git::https://dev.azure.com/automITde/training/_git/tf_module_container_app?ref=1.0.1"
+  source = "git::https://dev.azure.com/automITde/training/_git/tf_module_container_app?ref=1.1.0"
 
   ca_name                      = "autws15-nginx"
   resource_group_name          = data.azurerm_resource_group.rg.name
@@ -46,6 +46,7 @@ module "containerapp_nginx" {
 | `env_vars` | list(object) | `[]` | `name` + `value` |
 | `mounted_files` | list(object) | `[]` | `path` (Dateipfad im Container) + `content` |
 | `tags` | map(string) | `{}` | Tags |
+| `registry` | object | `null` | Private Registry: `server` (Login-Server) + `identity_id` (User Assigned Identity mit `AcrPull`) |
 
 ## Outputs
 
@@ -54,3 +55,16 @@ module "containerapp_nginx" {
 | `id` | ID der App |
 | `name` | Name der App |
 | `url` | URL der App |
+
+## Beispiel: Image aus einer privaten Registry
+
+Die Identity muss bereits die Rolle `AcrPull` auf der Registry haben, das Modul vergibt dafür keine Rollen.
+
+```hcl
+  container_image = "${data.azurerm_container_registry.acr.login_server}/nginx:latest"
+
+  registry = {
+    server      = data.azurerm_container_registry.acr.login_server
+    identity_id = data.azurerm_user_assigned_identity.acr_pull.id
+  }
+```

@@ -8,16 +8,21 @@ Pfad gemountet. Ändert sich ein Dateiinhalt, erzeugt das Modul automatisch eine
 
 Benötigt den Provider `azurerm` ab Version 4.18 (`volume_mounts.sub_path`).
 
+Images kommen immer aus der Trainings-Registry `automittraincapp.azurecr.io`: `container_image` ist nur
+`<repository>:<tag>`, das Modul setzt den Login-Server davor. Für den Pull verwendet das Modul die
+Identity `<resource_group_name>-uami`, die der Trainer vorab mit `AcrPull` anlegt (`tf-container_apps/infra`).
+Öffentliche Images (Docker Hub, MCR) werden nicht unterstützt.
+
 ## Verwendung
 
 ```hcl
 module "containerapp_nginx" {
-  source = "git::https://dev.azure.com/automITde/training/_git/tf_module_container_app?ref=1.1.0"
+  source = "git::https://dev.azure.com/automITde/training/_git/tf_module_container_app?ref=2.0.0"
 
   ca_name                      = "autws15-nginx"
   resource_group_name          = data.azurerm_resource_group.rg.name
   container_app_environment_id = data.azurerm_container_app_environment.cae.id
-  container_image              = "nginx:latest"
+  container_image              = "nginx:latest" # -> automittraincapp.azurecr.io/nginx:latest
 
   mounted_files = [
     {
@@ -35,7 +40,7 @@ module "containerapp_nginx" {
 | `ca_name` | string | – | Name der App (Kleinbuchstaben, Ziffern, `-`, max. 32 Zeichen) |
 | `resource_group_name` | string | – | Resourcegruppe |
 | `container_app_environment_id` | string | – | ID des Container App Environments |
-| `container_image` | string | – | Container Image |
+| `container_image` | string | – | Image aus der Trainings-Registry als `<repository>:<tag>`, z. B. `nginx:latest` |
 | `container_name` | string | `"main"` | Name des Containers |
 | `cpu` | number | `0.25` | CPU pro Replica |
 | `memory` | string | `"0.5Gi"` | Speicher pro Replica |
@@ -46,7 +51,6 @@ module "containerapp_nginx" {
 | `env_vars` | list(object) | `[]` | `name` + `value` |
 | `mounted_files` | list(object) | `[]` | `path` (Dateipfad im Container) + `content` |
 | `tags` | map(string) | `{}` | Tags |
-| `registry` | object | `null` | Private Registry: `server` (Login-Server) + `identity_id` (User Assigned Identity mit `AcrPull`) |
 
 ## Outputs
 
@@ -55,16 +59,3 @@ module "containerapp_nginx" {
 | `id` | ID der App |
 | `name` | Name der App |
 | `url` | URL der App |
-
-## Beispiel: Image aus einer privaten Registry
-
-Die Identity muss bereits die Rolle `AcrPull` auf der Registry haben, das Modul vergibt dafür keine Rollen.
-
-```hcl
-  container_image = "${data.azurerm_container_registry.acr.login_server}/nginx:latest"
-
-  registry = {
-    server      = data.azurerm_container_registry.acr.login_server
-    identity_id = data.azurerm_user_assigned_identity.acr_pull.id
-  }
-```

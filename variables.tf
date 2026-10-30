@@ -19,7 +19,7 @@ variable "container_app_environment_id" {
 }
 
 variable "container_image" {
-  description = "Container Image, z.B. nginx:latest"
+  description = "Image aus der Trainings-Registry automittraincapp.azurecr.io als <repository>:<tag>, z.B. nginx:latest"
   type        = string
 }
 
@@ -84,13 +84,4 @@ variable "mounted_files" {
 variable "tags" {
   type    = map(string)
   default = {}
-}
-
-variable "registry" {
-  description = "Optional: private Container Registry. server = Login-Server (z.B. myacr.azurecr.io), identity_id = ID einer User Assigned Identity mit AcrPull auf der Registry"
-  type = object({
-    server      = string
-    identity_id = string
-  })
-  default = null
 }

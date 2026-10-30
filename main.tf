@@ -15,21 +15,15 @@ resource "azurerm_container_app" "app" {
   revision_mode                = "Single"
   tags                         = var.tags
 
-  # Die Identity braucht AcrPull auf der Registry, das Modul vergibt keine Rollen
-  dynamic "identity" {
-    for_each = var.registry != null ? [var.registry] : []
-    content {
-      type         = "UserAssigned"
-      identity_ids = [identity.value.identity_id]
-    }
+  # Image-Pull aus der Trainings-Registry, die Identity hat bereits AcrPull
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [data.azurerm_user_assigned_identity.acr_pull.id]
   }
 
-  dynamic "registry" {
-    for_each = var.registry != null ? [var.registry] : []
-    content {
-      server   = registry.value.server
-      identity = registry.value.identity_id
-    }
+  registry {
+    server   = local.registry_server
+    identity = data.azurerm_user_assigned_identity.acr_pull.id
   }
 
   dynamic "secret" {
@@ -63,7 +57,7 @@ resource "azurerm_container_app" "app" {
 
     container {
       name   = var.container_name
-      image  = var.container_image
+      image  = "${local.registry_server}/${var.container_image}"
       cpu    = var.cpu
       memory = var.memory
 
